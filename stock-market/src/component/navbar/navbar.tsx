@@ -2,12 +2,12 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Search, Menu, X, ChevronDown, LogOut, Settings, User } from "lucide-react"
 
-interface MarketIndex {
-  symbol: string
-  value: string
-  change: number
-  isPositive: boolean
-}
+// interface MarketIndex {
+//   symbol: string
+//   value: string
+//   change: number
+//   isPositive: boolean
+// }
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -15,11 +15,11 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("")
 
   // Mock market data
-  const marketIndices: MarketIndex[] = [
-    { symbol: "NIFTY 50", value: "23,456.50", change: 1.24, isPositive: true },
-    { symbol: "SENSEX", value: "77,890.25", change: 0.89, isPositive: true },
-    { symbol: "DOW", value: "42,123.45", change: -0.45, isPositive: false },
-  ]
+  // const marketIndices: MarketIndex[] = [
+  //   { symbol: "NIFTY 50", value: "23,456.50", change: 1.24, isPositive: true },
+  //   { symbol: "SENSEX", value: "77,890.25", change: 0.89, isPositive: true },
+  //   { symbol: "DOW", value: "42,123.45", change: -0.45, isPositive: false },
+  // ]
 
   const navLinks = [
     { label: "Home", href: "/" },
@@ -33,7 +33,7 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="max-w-8xl px-2 sm:px-4 lg:px-6">
         {/* Main navbar container */}
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -50,7 +50,7 @@ export default function Navbar() {
               <a
                 key={link.href}
                 href={link.href}
-                className="px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground transition-colors rounded-md hover:bg-muted"
+                className="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground transition-colors rounded-md hover:bg-muted"
               >
                 {link.label}
               </a>
@@ -58,9 +58,9 @@ export default function Navbar() {
           </div>
 
           {/* Right section: Search, Market Summary, User */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {/* Search Bar */}
-            <div className="hidden lg:flex items-center gap-2 bg-muted rounded-lg px-3 py-2 w-48">
+            <div className="hidden lg:flex items-center gap-2 bg-muted rounded-lg px-3 py-2 w-80">
               <Search className="h-4 w-4 text-muted-foreground" />
               <input
                 type="text"
@@ -72,7 +72,7 @@ export default function Navbar() {
             </div>
 
             {/* Market Summary Widget - Desktop */}
-            <div className="hidden xl:flex items-center gap-3 px-3 py-2 bg-muted rounded-lg">
+            {/* <div className="hidden xl:flex items-center gap-3 px-3 py-2 bg-muted rounded-lg">
               {marketIndices.slice(0, 2).map((index) => (
                 <div key={index.symbol} className="flex flex-col gap-0.5">
                   <span className="text-xs font-semibold text-foreground">{index.symbol}</span>
@@ -89,7 +89,7 @@ export default function Navbar() {
                   </div>
                 </div>
               ))}
-            </div>
+            </div> */}
 
             {/* User Section */}
             {isLoggedIn ? (
@@ -173,7 +173,7 @@ export default function Navbar() {
             </div>
 
             {/* Mobile Market Summary */}
-            <div className="bg-muted rounded-lg p-3 space-y-2">
+            {/* <div className="bg-muted rounded-lg p-3 space-y-2">
               <p className="text-xs font-semibold text-foreground/60 uppercase">Market Summary</p>
               {marketIndices.map((index) => (
                 <div key={index.symbol} className="flex items-center justify-between text-sm">
@@ -191,7 +191,7 @@ export default function Navbar() {
                   </div>
                 </div>
               ))}
-            </div>
+            </div> */}
 
             {/* Mobile Auth Buttons */}
             {!isLoggedIn && (
