@@ -1,75 +1,169 @@
-import { useState } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import Card from "../../card-table/card"
 import Button from "../../card-table/button"
 
-// Sample news data
-const newsArticles = [
-  {
-    id: 1,
-    title: "NIFTY 50 Reaches New All-Time High",
-    description:
-      "The NIFTY 50 index surged to a new all-time high, driven by strong performance in IT and financial sectors.",
-    category: "Global Markets",
-    image: "/img/stock-market-chart.png",
-    date: "2 hours ago",
-  },
-  {
-    id: 2,
-    title: "Tech Stocks Rally on Strong Earnings",
-    description:
-      "Major technology companies report better-than-expected quarterly earnings, boosting investor confidence.",
-    category: "Technology",
-    image: "/img/technology-stocks.png",
-    date: "4 hours ago",
-  },
-  {
-    id: 3,
-    title: "RBI Maintains Interest Rates",
-    description:
-      "The Reserve Bank of India keeps the repo rate unchanged at 6.5%, signaling a pause in the rate hike cycle.",
-    category: "Finance",
-    image: "/img/interest-rates.jpg",
-    date: "6 hours ago",
-  },
-  {
-    id: 4,
-    title: "Oil Prices Surge on Supply Concerns",
-    description: "Crude oil prices jump 3% amid concerns about global supply disruptions and geopolitical tensions.",
-    category: "Global Markets",
-    image: "/img/oil-prices-chart.png",
-    date: "8 hours ago",
-  },
-  {
-    id: 5,
-    title: "Rupee Strengthens Against Dollar",
-    description: "The Indian rupee appreciates to a 6-month high against the US dollar on strong FII inflows.",
-    category: "Finance",
-    image: "/img/currency-exchange.png",
-    date: "10 hours ago",
-  },
-  {
-    id: 6,
-    title: "Startup Ecosystem Booms in India",
-    description:
-      "India sees record number of unicorn startups in 2024, attracting massive venture capital investments.",
-    category: "Technology",
-    image: "/img/startup-ecosystem.jpg",
-    date: "12 hours ago",
-  },
-]
+// TypeScript interfaces
+interface NewsItem {
+  id: number
+  title: string
+  description: string
+  category: string
+  image: string
+  date: string
+  url: string
+}
+
+interface ApiNewsItem {
+  title: string
+  description: string
+  urlToImage: string
+  publishedAt: string
+  url: string
+}
 
 const categories = ["All", "Global Markets", "Technology", "Finance"]
 
+// Function to categorize news based on keywords
+const categorizeNews = (title: string, description: string): string => {
+  const lowerTitle = title.toLowerCase()
+  const lowerDesc = description.toLowerCase()
+
+  const techKeywords = ['tech', 'software', 'ai', 'startup', 'internet', 'digital', 'computer', 'mobile', 'app']
+  const financeKeywords = ['bank', 'interest', 'economy', 'currency', 'rupee', 'dollar', 'investment', 'fund', 'loan', 'credit', 'stock', 'bond', 'market']
+
+  if (techKeywords.some(keyword => lowerTitle.includes(keyword) || lowerDesc.includes(keyword))) {
+    return "Technology"
+  } else if (financeKeywords.some(keyword => lowerTitle.includes(keyword) || lowerDesc.includes(keyword))) {
+    return "Finance"
+  } else {
+    return "Global Markets"
+  }
+}
+
+// Function to format date
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+
+  if (diffInHours < 1) return "Less than an hour ago"
+  if (diffInHours === 1) return "1 hour ago"
+  if (diffInHours < 24) return `${diffInHours} hours ago`
+  const diffInDays = Math.floor(diffInHours / 24)
+  if (diffInDays === 1) return "1 day ago"
+  return `${diffInDays} days ago`
+}
+
 export default function NewsPage() {
+  const [newsArticles, setNewsArticles] = useState<NewsItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState("All")
+  const [page, setPage] = useState(1)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  const [totalResults, setTotalResults] = useState(0)
+
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const fetchNews = useCallback(async (pageNum: number, append: boolean = false) => {
+    try {
+      if (!append) setLoading(true)
+      else setLoadingMore(true)
+      setError(null)
+
+      const response = await fetch(`https://newsapi.org/v2/everything?q=finance+technology+business&sortBy=publishedAt&pageSize=20&page=${pageNum}&apiKey=ce804aaf3cc94019bc0e0c0a11da19a2`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch news')
+      }
+      const data = await response.json()
+      const articles: ApiNewsItem[] = data.articles
+
+      if (!append) {
+        setTotalResults(data.totalResults)
+      }
+
+      const mappedNews: NewsItem[] = articles.map((item, index) => ({
+        id: append ? newsArticles.length + index + 1 : index + 1,
+        title: item.title,
+        description: item.description,
+        category: categorizeNews(item.title, item.description),
+        image: item.urlToImage,
+        date: formatDate(item.publishedAt),
+        url: item.url
+      }))
+
+      if (append) {
+        setNewsArticles(prev => [...prev, ...mappedNews])
+      } else {
+        setNewsArticles(mappedNews)
+      }
+
+      if (newsArticles.length + mappedNews.length >= data.totalResults) {
+        setHasMore(false)
+      }
+    } catch (err) {
+      setError('Failed to load news')
+      console.error('Error fetching news:', err)
+    } finally {
+      setLoading(false)
+      setLoadingMore(false)
+    }
+  }, [newsArticles.length])
+
+  useEffect(() => {
+    fetchNews(1, false)
+  }, [])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (containerRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = containerRef.current
+        if (scrollTop + clientHeight >= scrollHeight - 100 && !loadingMore && hasMore) {
+          setPage(prev => prev + 1)
+          fetchNews(page + 1, true)
+        }
+      }
+    }
+
+    const container = containerRef.current
+    if (container) {
+      container.addEventListener('scroll', handleScroll)
+      return () => container.removeEventListener('scroll', handleScroll)
+    }
+  }, [loadingMore, hasMore, page, fetchNews])
 
   const filteredNews =
     selectedCategory === "All" ? newsArticles : newsArticles.filter((article) => article.category === selectedCategory)
 
+  if (loading && page === 1) {
+    return (
+      <div className="p-6 space-y-6">
+        <h1 className="text-2xl font-bold">Market News</h1>
+        <p className="text-gray-700 dark:text-gray-300">Latest updates from the stock market and financial world</p>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error && newsArticles.length === 0) {
+    return (
+      <div className="p-6 space-y-6">
+        <h1 className="text-2xl font-bold">Market News</h1>
+        <p className="text-gray-700 dark:text-gray-300">Latest updates from the stock market and financial world</p>
+        <div className="flex justify-center items-center h-64">
+          <p className="text-red-500 text-lg">{error}</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="p-6 space-y-6">
+    <div ref={containerRef} className="p-6 space-y-6 overflow-y-auto h-screen">
       <h1 className="text-2xl font-bold">Market News</h1>
-      <p className="text-gray-700 dark:text-gray-300">Latest updates from the stock market and financial world</p>
+      <p className="text-gray-700 dark:text-gray-300">Latest updates from the stock market and financial world ({newsArticles.length} of {totalResults} articles loaded)</p>
 
       {/* Category Filters */}
       <div className="flex flex-wrap gap-3">
@@ -88,7 +182,7 @@ export default function NewsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredNews.map((article) => (
           <Card key={article.id} title="">
-            <div className="aspect-video overflow-hidden bg-gray-200">
+            <div className="aspect-video overflow-hidden bg-gray-200 cursor-pointer" onClick={() => window.open(article.url, '_blank')}>
               <img
                 src={article.image || "/placeholder.svg"}
                 alt={article.title}
@@ -102,12 +196,19 @@ export default function NewsPage() {
                 </span>
                 <span className="text-xs text-gray-500">{article.date}</span>
               </div>
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">{article.title}</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 line-clamp-2 cursor-pointer hover:text-blue-600" onClick={() => window.open(article.url, '_blank')}>{article.title}</h3>
               <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{article.description}</p>
             </div>
           </Card>
         ))}
       </div>
+
+      {/* Loading Spinner for Infinite Scroll */}
+      {loadingMore && (
+        <div className="flex justify-center items-center py-6">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
+      )}
     </div>
   )
 }
