@@ -1,6 +1,3 @@
-- [x] Install react-router-dom
-- [x] Update App.tsx to include BrowserRouter, Routes, and Route for /login and /signup
-- [x] Update Navbar.tsx to use Link for Login and Sign Up buttons
-- [x] Ensure navbar is fixed and visible on all pages
-- [x] Adjust Login and Signup pages to render below fixed navbar
-- [x] Test navigation and responsiveness
+- [x] Import MarketsPage component in App.tsx
+- [x] Add Route for "/markets" in App.tsx to render MarketsPage within Layout
+- [x] Update navbar.tsx to use Link instead of a href for Markets link for React Router consistency
