@@ -1,6 +1,6 @@
 // src/components/Sidebar.tsx
 import React from "react";
-import { X, User, Home, TrendingUp, PieChart, Bell } from "lucide-react";
+import { X, User, Home, TrendingUp, PieChart, Bell, Bot } from "lucide-react";
 
 interface MenuItem {
   name: string;
@@ -13,6 +13,7 @@ const menuItems: MenuItem[] = [
   { name: "My Portfolio", icon: <PieChart />, href: "/portfolio" },
   { name: "Market Trends", icon: <TrendingUp />, href: "/market-trends" },
   { name: "News & Alerts", icon: <Bell />, href: "/news-alerts" },
+  { name: "App Agent", icon: <Bot />, href: "/app-agent" },
 ];
 
 interface SidebarProps {

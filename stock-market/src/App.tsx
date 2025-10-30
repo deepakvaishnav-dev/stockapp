@@ -12,6 +12,7 @@ import NewsPage from './component/navbar/navlinks/news';
 import AnalyticsPage from './component/navbar/navlinks/analytics';
 import AboutPage from './component/navbar/navlinks/about';
 import ContactPage from './component/navbar/navlinks/contact';
+import Chatbot from './component/chatbot/Chatbot';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route path="/analytics" element={<Layout><AnalyticsPage /></Layout>} />
           <Route path="/about" element={<Layout><AboutPage /></Layout>} />
           <Route path="/contact" element={<Layout><ContactPage /></Layout>} />
+          <Route path="/app-agent" element={<Layout><Chatbot /></Layout>} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
         </Routes>
